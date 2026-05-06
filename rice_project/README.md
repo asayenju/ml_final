@@ -34,5 +34,25 @@ python rice_project/decision_tree_rice.py
 python rice_project/random_forest_rice.py
 ```
 
+## Assignment Pipeline (Uses `library/` Classes)
+This repository now includes a consolidated script:
+
+```bash
+.venv/bin/python rice_project/run_assignment_experiments.py
+```
+
+It uses:
+- `library.KNNClassifier`
+- `library.DecisionTreeClassifierScratch`
+- `library.RandomForestClassifierScratch`
+
+And it produces:
+- 10-fold stratified CV metrics (accuracy and weighted F1-score)
+- Hyperparameter tables (>= 6 settings per algorithm)
+- Graphs for each algorithm per dataset
+- Final summary tables:
+  - `rice_project/results/final_summary_table.csv` (long format)
+  - `rice_project/results/final_summary_matrix.csv` (Table-1 style matrix)
+
 ## Output files
 Each script saves CSV evaluation tables and PNG graphs in `rice_project/`.
