@@ -10,6 +10,12 @@ def sigmoid_derivative(linear_values):
     return activation_values * (1.0 - activation_values)
 
 
+def softmax_activation(values):
+    shifted_values = values - np.max(values, axis=1, keepdims=True)
+    exp_values = np.exp(shifted_values)
+    return exp_values / np.sum(exp_values, axis=1, keepdims=True)
+
+
 def prepend_bias_column(values):
     if values.ndim == 1:
         return np.concatenate([np.ones(1), values])
@@ -20,10 +26,13 @@ def run_forward_pass(features, weight_matrices):
     activations = [features]
     linear_outputs = []
     current_activation = features
-    for weight_matrix in weight_matrices:
+    for layer_index, weight_matrix in enumerate(weight_matrices):
         activation_with_bias = prepend_bias_column(current_activation)
         linear_output = activation_with_bias @ weight_matrix.T
-        current_activation = sigmoid_activation(linear_output)
+        if layer_index == len(weight_matrices) - 1:
+            current_activation = softmax_activation(linear_output)
+        else:
+            current_activation = sigmoid_activation(linear_output)
         linear_outputs.append(linear_output)
         activations.append(current_activation)
     return activations, linear_outputs
@@ -33,10 +42,7 @@ def compute_cross_entropy_cost(true_labels, predicted_labels, weight_matrices, r
     sample_count = true_labels.shape[0]
     eps = 1e-12
     clipped_predictions = np.clip(predicted_labels, eps, 1.0 - eps)
-    cost = -np.sum(
-        true_labels * np.log(clipped_predictions)
-        + (1.0 - true_labels) * np.log(1.0 - clipped_predictions)
-    ) / sample_count
+    cost = -np.sum(true_labels * np.log(clipped_predictions)) / sample_count
     if regularization_lambda > 0:
         reg_sum = 0.0
         for weight_matrix in weight_matrices:
@@ -88,10 +94,12 @@ class NeuralNetwork:
         layers,
         regularization=0.0,
         learning_rate=0.1,
+        max_iterations=10000,
     ):
         self.layer_sizes = list(layers)
         self.reg_lambda = regularization
         self.learning_rate = learning_rate
+        self.max_iterations = max_iterations
         self.weight_matrices = self._init_weight_matrices()
         self.normalization_stats = None
 
@@ -109,8 +117,8 @@ class NeuralNetwork:
         if normalize:
             features, self.normalization_stats = fit_min_max_normalization(features)
         previous_cost = None
-        stopping_epsilon =0.0001
-        while True:
+        stopping_epsilon = 0.0001
+        for _ in range(self.max_iterations):
             activations, _, _, gradients = run_backpropagation(
                 features,
                 labels,
