@@ -143,6 +143,10 @@ def main():
     test_accuracies = []
     train_f1s = []
     test_f1s = []
+    train_precisions = []
+    test_precisions = []
+    train_recalls = []
+    test_recalls = []
 
     print(f"Loaded data: {X.shape[0]} rows, {X.shape[1]} features")
     print(f"Running {NUM_REPEATS} random 80/20 splits with max_depth={MAX_DEPTH}")
@@ -162,59 +166,81 @@ def main():
         tree = build_tree(X_train, y_train, feature_indices, max_depth=MAX_DEPTH)
         
         train_preds = [predict_single(row, tree) for row in X_train]
-        train_acc = np.mean(np.array(train_preds) == y_train)
+        train_preds = np.array(train_preds)
+        train_acc = np.mean(train_preds == y_train)
         train_accuracies.append(train_acc)
-        train_f1 = weighted_f1_score(y_train, np.array(train_preds))
+        train_prec = weighted_precision_score(y_train, train_preds)
+        train_precisions.append(train_prec)
+        train_rec = weighted_recall_score(y_train, train_preds)
+        train_recalls.append(train_rec)
+        train_f1 = weighted_f1_score(y_train, train_preds)
         train_f1s.append(train_f1)
         
         test_preds = [predict_single(row, tree) for row in X_test]
-        test_acc = np.mean(np.array(test_preds) == y_test)
+        test_preds = np.array(test_preds)
+        test_acc = np.mean(test_preds == y_test)
         test_accuracies.append(test_acc)
-        test_f1 = weighted_f1_score(y_test, np.array(test_preds))
+        test_prec = weighted_precision_score(y_test, test_preds)
+        test_precisions.append(test_prec)
+        test_rec = weighted_recall_score(y_test, test_preds)
+        test_recalls.append(test_rec)
+        test_f1 = weighted_f1_score(y_test, test_preds)
         test_f1s.append(test_f1)
 
         print(f"  repeat {i + 1}/{NUM_REPEATS} done: train_acc={train_acc:.4f}, test_acc={test_acc:.4f}, train_f1={train_f1:.4f}, test_f1={test_f1:.4f}")
 
     print("All repeats finished")
 
-    print(f"Training Accuracy: {np.mean(train_accuracies):.4f} (SD: {np.std(train_accuracies):.4f})")
-    print(f"Testing Accuracy:  {np.mean(test_accuracies):.4f} (SD: {np.std(test_accuracies):.4f})")
-    print(f"Training F1: {np.mean(train_f1s):.4f} (SD: {np.std(train_f1s):.4f})")
-    print(f"Testing F1:  {np.mean(test_f1s):.4f} (SD: {np.std(test_f1s):.4f})")
+    print(f"\n{'='*70}")
+    print(f"DECISION TREE METRICS (averaged over {NUM_REPEATS} repeats)")
+    print(f"{'='*70}")
+    print(f"Training Accuracy:  {np.mean(train_accuracies):.4f} (SD: {np.std(train_accuracies):.4f})")
+    print(f"Testing Accuracy:   {np.mean(test_accuracies):.4f} (SD: {np.std(test_accuracies):.4f})")
+    print(f"Training Precision: {np.mean(train_precisions):.4f} (SD: {np.std(train_precisions):.4f})")
+    print(f"Testing Precision:  {np.mean(test_precisions):.4f} (SD: {np.std(test_precisions):.4f})")
+    print(f"Training Recall:    {np.mean(train_recalls):.4f} (SD: {np.std(train_recalls):.4f})")
+    print(f"Testing Recall:     {np.mean(test_recalls):.4f} (SD: {np.std(test_recalls):.4f})")
+    print(f"Training F1:        {np.mean(train_f1s):.4f} (SD: {np.std(train_f1s):.4f})")
+    print(f"Testing F1:         {np.mean(test_f1s):.4f} (SD: {np.std(test_f1s):.4f})")
+    print(f"{'='*70}\n")
 
     # Plotting training accuracy distribution
     plt.figure(figsize=(12, 5))
-    plt.hist(train_accuracies, bins=20, range=(0, 1), color='skyblue', edgecolor='black')
+    plt.hist(train_accuracies, bins=20, range=(0.8, 1), color='skyblue', edgecolor='black')
     plt.title('Training Accuracy Distribution')
     plt.xlabel('Accuracy')
     plt.ylabel('Frequency')
+    plt.xlim(0.8, 1.0)
     plt.savefig(ROOT / 'dt_train_accuracy_distribution.png')
     plt.close()
 
     # Plotting testing accuracy distribution
     plt.figure(figsize=(12, 5))
-    plt.hist(test_accuracies, bins=20, range=(0, 1), color='salmon', edgecolor='black')
+    plt.hist(test_accuracies, bins=20, range=(0.8, 1), color='salmon', edgecolor='black')
     plt.title('Testing Accuracy Distribution')
     plt.xlabel('Accuracy')
     plt.ylabel('Frequency')
+    plt.xlim(0.8, 1.0)
     plt.savefig(ROOT / 'dt_test_accuracy_distribution.png')
     plt.close()
 
     # Plotting training F1 distribution
     plt.figure(figsize=(12, 5))
-    plt.hist(train_f1s, bins=20, range=(0, 1), color='lightgreen', edgecolor='black')
+    plt.hist(train_f1s, bins=20, range=(0.8, 1), color='lightgreen', edgecolor='black')
     plt.title('Training F1 Distribution')
     plt.xlabel('F1 Score')
     plt.ylabel('Frequency')
+    plt.xlim(0.8, 1.0)
     plt.savefig(ROOT / 'dt_train_f1_distribution.png')
     plt.close()
 
     # Plotting testing F1 distribution
     plt.figure(figsize=(12, 5))
-    plt.hist(test_f1s, bins=20, range=(0, 1), color='orange', edgecolor='black')
+    plt.hist(test_f1s, bins=20, range=(0.8, 1), color='orange', edgecolor='black')
     plt.title('Testing F1 Distribution')
     plt.xlabel('F1 Score')
     plt.ylabel('Frequency')
+    plt.xlim(0.8, 1.0)
     plt.savefig(ROOT / 'dt_test_f1_distribution.png')
     plt.close()
 

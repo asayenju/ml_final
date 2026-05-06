@@ -46,6 +46,30 @@ def calculate_accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
 
+def weighted_precision_score(y_true, y_pred):
+    labels, counts = np.unique(y_true, return_counts=True)
+    total = len(y_true)
+    score_sum = 0.0
+    for label, count in zip(labels, counts):
+        tp = np.sum((y_pred == label) & (y_true == label))
+        fp = np.sum((y_pred == label) & (y_true != label))
+        precision = tp / (tp + fp + 1e-9)
+        score_sum += precision * (count / total)
+    return score_sum
+
+
+def weighted_recall_score(y_true, y_pred):
+    labels, counts = np.unique(y_true, return_counts=True)
+    total = len(y_true)
+    score_sum = 0.0
+    for label, count in zip(labels, counts):
+        tp = np.sum((y_pred == label) & (y_true == label))
+        fn = np.sum((y_pred != label) & (y_true == label))
+        recall = tp / (tp + fn + 1e-9)
+        score_sum += recall * (count / total)
+    return score_sum
+
+
 def weighted_f1_score(y_true, y_pred):
     labels, counts = np.unique(y_true, return_counts=True)
     total = len(y_true)
@@ -62,24 +86,20 @@ def weighted_f1_score(y_true, y_pred):
 
 
 def main():
-    filename = 'rice.csv'
-    raw_data = []
-    try:
-        with open(filename, 'r', newline='') as f:
-            reader = csv.reader(f)
-            for row in reader:
-                if row:
-                    raw_data.append(row)
-        raw_data = np.array(raw_data)
-    except FileNotFoundError:
-        print('CSV not found.')
+    X, y = load_csv('rice.csv')
+    if X.size == 0:
+        print('CSV not found or empty.')
         return
 
     k_values = list(range(1, 52, 2))
-    num_runs = 20
+    num_runs = 10
 
     avg_train_accs, std_train_accs = [], []
     avg_test_accs, std_test_accs = [], []
+    avg_train_precs, std_train_precs = [], []
+    avg_test_precs, std_test_precs = [], []
+    avg_train_recs, std_train_recs = [], []
+    avg_test_recs, std_test_recs = [], []
     avg_train_f1s, std_train_f1s = [], []
     avg_test_f1s, std_test_f1s = [], []
 
@@ -87,25 +107,33 @@ def main():
     for k in k_values:
         run_train_accs = []
         run_test_accs = []
+        run_train_precs = []
+        run_test_precs = []
+        run_train_recs = []
+        run_test_recs = []
         run_train_f1s = []
         run_test_f1s = []
 
         for run in range(num_runs):
-            current_data = raw_data.copy()
+            current_data = np.column_stack((X, y))
             np.random.shuffle(current_data)
 
-            X = current_data[:, :-1].astype(float)
-            y = current_data[:, -1]
+            X_shuf = current_data[:, :-1].astype(float)
+            y_shuf = current_data[:, -1]
             split_idx = int(0.8 * len(current_data))
-            X_train, X_test = X[:split_idx], X[split_idx:]
-            y_train, y_test = y[:split_idx], y[split_idx:]
+            X_train, X_test = X_shuf[:split_idx], X_shuf[split_idx:]
+            y_train, y_test = y_shuf[:split_idx], y_shuf[split_idx:]
 
             train_preds = predict_batch(X_train, X_train, y_train, k)
             run_train_accs.append(calculate_accuracy(y_train, train_preds))
+            run_train_precs.append(weighted_precision_score(y_train, train_preds))
+            run_train_recs.append(weighted_recall_score(y_train, train_preds))
             run_train_f1s.append(weighted_f1_score(y_train, train_preds))
 
             test_preds = predict_batch(X_test, X_train, y_train, k)
             run_test_accs.append(calculate_accuracy(y_test, test_preds))
+            run_test_precs.append(weighted_precision_score(y_test, test_preds))
+            run_test_recs.append(weighted_recall_score(y_test, test_preds))
             run_test_f1s.append(weighted_f1_score(y_test, test_preds))
 
             if (run + 1) % 5 == 0:
@@ -115,11 +143,23 @@ def main():
         std_train_accs.append(np.std(run_train_accs))
         avg_test_accs.append(np.mean(run_test_accs))
         std_test_accs.append(np.std(run_test_accs))
+        avg_train_precs.append(np.mean(run_train_precs))
+        std_train_precs.append(np.std(run_train_precs))
+        avg_test_precs.append(np.mean(run_test_precs))
+        std_test_precs.append(np.std(run_test_precs))
+        avg_train_recs.append(np.mean(run_train_recs))
+        std_train_recs.append(np.std(run_train_recs))
+        avg_test_recs.append(np.mean(run_test_recs))
+        std_test_recs.append(np.std(run_test_recs))
         avg_train_f1s.append(np.mean(run_train_f1s))
         std_train_f1s.append(np.std(run_train_f1s))
         avg_test_f1s.append(np.mean(run_test_f1s))
         std_test_f1s.append(np.std(run_test_f1s))
-        print(f'k={k} completed.')
+        print(
+            f"k={k} completed: "
+            f"train_acc={avg_train_accs[-1]:.4f}, train_prec={avg_train_precs[-1]:.4f}, train_rec={avg_train_recs[-1]:.4f}, train_f1={avg_train_f1s[-1]:.4f}; "
+            f"test_acc={avg_test_accs[-1]:.4f}, test_prec={avg_test_precs[-1]:.4f}, test_rec={avg_test_recs[-1]:.4f}, test_f1={avg_test_f1s[-1]:.4f}"
+        )
 
     plt.figure(figsize=(10, 6))
     plt.errorbar(k_values, avg_train_accs, yerr=std_train_accs, fmt='-o', color='blue', ecolor='lightblue', capsize=3, label='Train Accuracy')
