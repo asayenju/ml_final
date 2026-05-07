@@ -222,8 +222,8 @@ class RandomForestClassifierScratch:
         if X.shape[1] != self.n_features_:
             raise ValueError("X must have the same number of features as training data")
 
-        all_preds = np.array([[self._predict_one_tree(x, t) for t in self.trees_] for x in X], dtype=object)
-        return np.array([self._forest_vote(row) for row in all_preds], dtype=object)
+        all_preds = np.array([[self._predict_one_tree(x, t) for t in self.trees_] for x in X])
+        return np.array([self._forest_vote(row) for row in all_preds])
 
     def score(self, X, y):
         y = np.asarray(y)
