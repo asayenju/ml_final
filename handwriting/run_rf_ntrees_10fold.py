@@ -19,7 +19,7 @@ def main():
     num_features = X.shape[1]
     numeric_cols = set(range(num_features))
     
-    tree_values = [1, 2, 3, 5, 10, 20, 30, 40, 50]
+    tree_values = [1, 2, 3, 5, 7, 10, 20, 30, 40, 50]
     summary_results = []
     
     print("Starting evaluations across different n_trees values...")
@@ -86,6 +86,21 @@ def main():
     out_path = os.path.join(os.path.dirname(__file__), 'rf_ntrees_cv_results.png')
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     print(f"Saved results table to {out_path}")
+
+    # Plot accuracy vs n_trees
+    ntree_values = [r['n_trees'] for r in summary_results]
+    mean_acc_values = [r['mean_acc'] for r in summary_results]
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.plot(ntree_values, mean_acc_values, marker='o', linewidth=2)
+    ax.set_xlabel("n_trees")
+    ax.set_ylabel("Accuracy")
+    ax.set_title("Random forest on handwriting dataset: ntree vs accuracy")
+    ax.grid(True, linestyle='--', alpha=0.4)
+
+    plot_path = os.path.join(os.path.dirname(__file__), 'rf_ntrees_accuracy.png')
+    plt.savefig(plot_path, bbox_inches='tight', dpi=300)
+    print(f"Saved accuracy plot to {plot_path}")
 
 if __name__ == "__main__":
     main()
