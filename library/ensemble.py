@@ -1,5 +1,8 @@
 import numpy as np
 
+from .nn import NeuralNetwork
+from .random_forest import RandomForestClassifierScratch
+
 
 class _DecisionStump:
     """Weighted decision stump for numeric features."""
@@ -53,7 +56,6 @@ class _SimpleOneHotEncoder:
         self.is_numeric_ = None
         self.numeric_means_ = {}
         self.categories_ = {}
-        self.n_features_in_ = None
 
     def _is_numeric_column(self, col):
         for v in col:
@@ -68,7 +70,6 @@ class _SimpleOneHotEncoder:
 
     def fit(self, X):
         X = np.asarray(X, dtype=object)
-        self.n_features_in_ = X.shape[1]
         self.is_numeric_ = []
         for j in range(X.shape[1]):
             col = X[:, j]
@@ -106,6 +107,42 @@ class _SimpleOneHotEncoder:
 
     def fit_transform(self, X):
         return self.fit(X).transform(X)
+
+
+class _NNClassifierMember:
+    """Label-aware wrapper over the existing NeuralNetwork implementation."""
+
+    def __init__(self, hidden_layers, regularization=0.01, learning_rate=0.08, max_iterations=250):
+        self.hidden_layers = list(hidden_layers)
+        self.regularization = float(regularization)
+        self.learning_rate = float(learning_rate)
+        self.max_iterations = int(max_iterations)
+        self.model_ = None
+        self.classes_ = None
+        self.class_to_idx_ = None
+
+    def fit(self, X, y):
+        X = np.asarray(X, dtype=float)
+        y = np.asarray(y)
+
+        self.classes_ = np.unique(y)
+        self.class_to_idx_ = {c: i for i, c in enumerate(self.classes_)}
+        y_idx = np.array([self.class_to_idx_[v] for v in y], dtype=int)
+        Y = np.zeros((len(y), len(self.classes_)), dtype=float)
+        Y[np.arange(len(y)), y_idx] = 1.0
+
+        layers = [X.shape[1]] + self.hidden_layers + [len(self.classes_)]
+        self.model_ = NeuralNetwork(
+            layers=layers,
+            regularization=self.regularization,
+            learning_rate=self.learning_rate,
+            max_iterations=self.max_iterations,
+        ).fit(X, Y, normalize=True)
+        return self
+
+    def predict(self, X):
+        probs = self.model_.predict(np.asarray(X, dtype=float), normalize=True)
+        return self.classes_[np.argmax(probs, axis=1)]
 
 
 class AdaBoostSAMMEScratch:
@@ -198,3 +235,130 @@ class AdaBoostSAMMEScratch:
         y = np.asarray(y)
         y_pred = self.predict(X)
         return np.mean(y_pred == y)
+
+
+class HeterogeneousBootstrapEnsembleEC3:
+    """
+    EC3-style heterogeneous ensemble: 3 neural networks (different architectures)
+    + 1 random forest. Each member is trained on its own bootstrap sample.
+    Final prediction: majority vote.
+    """
+
+    def __init__(
+        self,
+        nn_architectures=None,
+        n_rf_members=2,
+        rf_params=None,
+        nn_regularization=0.01,
+        nn_learning_rate=0.08,
+        nn_max_iterations=250,
+        random_state=42,
+    ):
+        self.nn_architectures = nn_architectures or [[32], [24, 12], [48, 24]]
+        self.n_rf_members = int(n_rf_members)
+        self.rf_params = rf_params or {
+            "n_trees": 15,
+            "max_depth": 12,
+            "min_size": 3,
+            "min_gain": 1e-4,
+        }
+        self.nn_regularization = float(nn_regularization)
+        self.nn_learning_rate = float(nn_learning_rate)
+        self.nn_max_iterations = int(nn_max_iterations)
+        self.random_state = random_state
+
+        self.encoder_ = None
+        self.members_ = []
+        self.classes_ = None
+        self._rng = np.random.default_rng(random_state)
+
+    @staticmethod
+    def _infer_numeric_cols(X):
+        numeric_cols = []
+        for j in range(X.shape[1]):
+            ok = True
+            for v in X[:, j]:
+                s = str(v).strip()
+                if s == "":
+                    continue
+                try:
+                    float(s)
+                except ValueError:
+                    ok = False
+                    break
+            if ok:
+                numeric_cols.append(j)
+        return set(numeric_cols)
+
+    def fit(self, X, y):
+        X = np.asarray(X, dtype=object)
+        y = np.asarray(y)
+        if X.ndim != 2:
+            raise ValueError("X must be 2D")
+        if y.ndim != 1 or len(y) != len(X):
+            raise ValueError("y must be 1D and match X rows")
+
+        self.classes_ = np.unique(y)
+        self.members_ = []
+
+        # Shared encoder for the three NN members.
+        self.encoder_ = _SimpleOneHotEncoder()
+        X_encoded = self.encoder_.fit_transform(X)
+
+        n = len(y)
+
+        for arch in self.nn_architectures:
+            boot_idx = self._rng.choice(n, size=n, replace=True)
+            nn_member = _NNClassifierMember(
+                hidden_layers=arch,
+                regularization=self.nn_regularization,
+                learning_rate=self.nn_learning_rate,
+                max_iterations=self.nn_max_iterations,
+            ).fit(X_encoded[boot_idx], y[boot_idx])
+            self.members_.append(("nn", nn_member))
+
+        for _ in range(self.n_rf_members):
+            rf_boot_idx = self._rng.choice(n, size=n, replace=True)
+            X_rf = X[rf_boot_idx]
+            y_rf = y[rf_boot_idx]
+            numeric_cols = self._infer_numeric_cols(X_rf)
+
+            rf = RandomForestClassifierScratch(
+                n_trees=self.rf_params.get("n_trees", 15),
+                max_depth=self.rf_params.get("max_depth", 12),
+                min_size=self.rf_params.get("min_size", 3),
+                min_gain=self.rf_params.get("min_gain", 1e-4),
+                numeric_cols=numeric_cols,
+                random_state=self.random_state,
+            ).fit(X_rf, y_rf)
+            self.members_.append(("rf", rf))
+
+        return self
+
+    def _check_is_fitted(self):
+        expected = len(self.nn_architectures) + self.n_rf_members
+        if self.encoder_ is None or len(self.members_) != expected:
+            raise ValueError("Model is not fitted.")
+
+    def _majority_vote(self, row_preds):
+        labels, counts = np.unique(row_preds, return_counts=True)
+        return labels[np.argmax(counts)]
+
+    def predict(self, X):
+        self._check_is_fitted()
+        X = np.asarray(X, dtype=object)
+
+        X_encoded = self.encoder_.transform(X)
+        all_preds = []
+        for member_type, member in self.members_:
+            if member_type == "nn":
+                all_preds.append(member.predict(X_encoded))
+            else:
+                all_preds.append(member.predict(X))
+
+        stacked = np.vstack(all_preds).T
+        return np.array([self._majority_vote(row) for row in stacked])
+
+    def score(self, X, y):
+        y = np.asarray(y)
+        return np.mean(self.predict(X) == y)
