@@ -1,21 +1,4 @@
-"""
-CMPSCI 589 Final Project – Obesity Dataset Experiments
-Algorithms: K-NN, Random Forest, Neural Network
-One graph per algorithm | 10-fold stratified cross-validation
 
-Expected folder layout:
-    project_root/
-    ├── library/
-    │   ├── knn.py
-    │   ├── random_forest.py
-    │   └── nn.py
-    ├── ObesityDataSet_raw_and_data_sinthetic.csv
-    └── obesity/
-        └── run_experiments.py   ← THIS FILE
-
-Run from anywhere:
-    python obesity/run_experiments.py
-"""
 
 import csv
 import os
