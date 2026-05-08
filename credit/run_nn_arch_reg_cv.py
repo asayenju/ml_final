@@ -172,13 +172,35 @@ def main():
                 f"F1={result['mean_f1']:.4f} (std {result['std_f1']:.4f})\n"
             )
 
-    # Print results table
+    # Print results table in the original (architecture, lambda) order
+    result_map = {(r['architecture'], r['lambda']): r for r in results}
+    ordered_results = []
+    for layers, reg in tasks:
+        key = (architecture_label(layers), reg)
+        if key in result_map:
+            ordered_results.append(result_map[key])
+        else:
+            print(f"Warning: missing result for {key}")
+
     print("\n" + "=" * 160)
     print(f"{'Architecture':<20} | {'Lambda':<8} | {'Mean Acc':<10} | {'Std Acc':<10} | {'Mean Recall':<12} | {'Std Recall':<12} | {'Mean F1':<10} | {'Std F1':<10}")
     print("-" * 160)
-    for r in results:
+    for r in ordered_results:
         print(f"{r['architecture']:<20} | {r['lambda']:<8} | {r['mean_acc']:<10.4f} | {r['std_acc']:<10.4f} | {r['mean_recall']:<12.4f} | {r['std_recall']:<12.4f} | {r['mean_f1']:<10.4f} | {r['std_f1']:<10.4f}")
     print("=" * 160 + "\n")
+
+    # Report best-performing configurations for each metric
+    if results:
+        best_acc = max(results, key=lambda r: r['mean_acc'])
+        best_recall = max(results, key=lambda r: r['mean_recall'])
+        best_f1 = max(results, key=lambda r: r['mean_f1'])
+
+        print("Best configurations:")
+        print(f"  Best Mean Accuracy: {best_acc['mean_acc']:.4f} — {best_acc['architecture']} (lambda={best_acc['lambda']})")
+        print(f"  Best Mean Recall:   {best_recall['mean_recall']:.4f} — {best_recall['architecture']} (lambda={best_recall['lambda']})")
+        print(f"  Best Mean F1:       {best_f1['mean_f1']:.4f} — {best_f1['architecture']} (lambda={best_f1['lambda']})")
+    else:
+        print("No results to summarize.")
 
 
 if __name__ == "__main__":
