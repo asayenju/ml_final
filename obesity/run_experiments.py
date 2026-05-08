@@ -22,9 +22,8 @@ import os
 from pathlib import Path
 import sys
 
-# ── paths (same convention as the reference scripts) ────────────────────────
-ROOT      = Path(__file__).resolve().parent   # obesity/
-REPO_ROOT = ROOT.parent                       # project_root/
+ROOT      = Path(__file__).resolve().parent
+REPO_ROOT = ROOT.parent
 
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".mplconfig"))
 
@@ -38,20 +37,17 @@ from library.knn           import KNNClassifier
 from library.random_forest import RandomForestClassifierScratch
 from library.nn            import NeuralNetwork
 
-# ── config ───────────────────────────────────────────────────────────────────
 DATASET      = REPO_ROOT / "ObesityDataSet_raw_and_data_sinthetic.csv"
 K_FOLDS      = 10
 RANDOM_STATE = 42
 
-# All odd values 1 → 51 (avoids ties in majority vote)
-KNN_K_VALUES = list(range(1, 52, 2))   # [1, 3, 5, 7, …, 51]
+KNN_K_VALUES = list(range(1, 52, 2))
 
 RF_CONFIGS = [
     (5,  5),  (10, 5),  (15, 8),  (20, 8),
     (20, 10), (30, 10), (50, 12),
 ]
 
-# ── palette ──────────────────────────────────────────────────────────────────
 C_BLUE   = "#2563EB"
 C_GREEN  = "#16A34A"
 C_PURPLE = "#7C3AED"
@@ -60,10 +56,6 @@ C_GREY   = "#6B7280"
 C_BG     = "#F8FAFC"
 C_GRID   = "#E2E8F0"
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# DATA
-# ════════════════════════════════════════════════════════════════════════════
 
 def load_data(csv_path):
     rows = []
@@ -77,19 +69,16 @@ def load_data(csv_path):
     data_rows = rows[1:]
     data      = np.array(data_rows, dtype=object)
 
-    # target is the last column (NObeyesdad)
     label_idx       = len(header) - 1
     feature_indices = list(range(label_idx))
 
-    X_raw = data[:, feature_indices]   # (N, 16)
-    y_raw = data[:, label_idx]         # (N,)
+    X_raw = data[:, feature_indices]
+    y_raw = data[:, label_idx]
 
     classes = sorted(set(y_raw))
     cls2int = {c: i for i, c in enumerate(classes)}
     y       = np.array([cls2int[v] for v in y_raw])
 
-    # categorical column indices: Gender, CALC, FAVC, SCC, SMOKE,
-    #                              family_history_with_overweight, CAEC, MTRANS
     cat_cols = [1, 4, 5, 8, 9, 11, 14, 15]
     num_idxs = set(i for i in range(X_raw.shape[1]) if i not in cat_cols)
 
@@ -99,17 +88,11 @@ def load_data(csv_path):
     return X_raw, y, classes, num_idxs, cat_cols
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# ONE-HOT ENCODING  (global categories fitted on full dataset)
-# ════════════════════════════════════════════════════════════════════════════
-
 def build_global_categories(X_raw, cat_cols):
-    """Fit category maps from the full dataset so column count is always stable."""
     return {j: sorted(set(X_raw[:, j])) for j in cat_cols}
 
 
 def ohe_encode(X_raw, cat_cols, fit_categories):
-    """Return numeric OHE array using pre-fitted global category maps."""
     d        = X_raw.shape[1]
     num_cols = [j for j in range(d) if j not in cat_cols]
 
@@ -124,10 +107,6 @@ def ohe_encode(X_raw, cat_cols, fit_categories):
 
     return np.hstack(parts)
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# STRATIFIED 10-FOLD
-# ════════════════════════════════════════════════════════════════════════════
 
 def stratified_kfold(y, k=10, seed=42):
     rng     = np.random.default_rng(seed)
@@ -145,10 +124,6 @@ def stratified_kfold(y, k=10, seed=42):
     return folds
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# METRICS
-# ════════════════════════════════════════════════════════════════════════════
-
 def accuracy(yt, yp):
     return float(np.mean(yt == yp))
 
@@ -163,10 +138,6 @@ def f1_macro(yt, yp):
         f1s.append(2 * p * r / (p + r) if p + r else 0.0)
     return float(np.mean(f1s))
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# KNN  – all odd k from 1 to 51, 10-fold
-# ════════════════════════════════════════════════════════════════════════════
 
 def run_knn(X_raw, y, folds, cat_cols, global_cats):
     results = []
@@ -185,10 +156,6 @@ def run_knn(X_raw, y, folds, cat_cols, global_cats):
         print(f"  KNN k={k:2d}  acc={results[-1]['acc']:.4f}  f1={results[-1]['f1']:.4f}")
     return results
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# RANDOM FOREST  – 7 configs, 10-fold
-# ════════════════════════════════════════════════════════════════════════════
 
 def run_rf(X_raw, y, folds, num_idxs):
     results = []
@@ -210,10 +177,6 @@ def run_rf(X_raw, y, folds, num_idxs):
         print(f"  RF  T={n_trees:2d} D={max_depth:2d}  acc={results[-1]['acc']:.4f}  f1={results[-1]['f1']:.4f}")
     return results
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# NEURAL NETWORK  – 7 architectures, 10-fold
-# ════════════════════════════════════════════════════════════════════════════
 
 def run_nn(X_raw, y, folds, cat_cols, n_classes, global_cats):
     n_in = ohe_encode(X_raw[:1], cat_cols, global_cats).shape[1]
@@ -251,10 +214,6 @@ def run_nn(X_raw, y, folds, cat_cols, n_classes, global_cats):
     return results
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# SAVE RESULTS CSV
-# ════════════════════════════════════════════════════════════════════════════
-
 def save_csv(rows, path, key_order):
     with open(path, "w", newline="") as f:
         writer = csv.writer(f)
@@ -263,10 +222,6 @@ def save_csv(rows, path, key_order):
             writer.writerow([row[k] for k in key_order])
     print(f"  → CSV : {path}")
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# PLOTS
-# ════════════════════════════════════════════════════════════════════════════
 
 def _base_style(fig, ax):
     fig.patch.set_facecolor(C_BG)
@@ -283,7 +238,6 @@ def plot_knn(results, out_dir):
     astd = [r["acc_std"] for r in results]
     fstd = [r["f1_std"]  for r in results]
 
-    # ignore k=1 when reporting best (synthetic data artefact)
     accs_no1 = [a if k > 1 else -1 for k, a in zip(ks, accs)]
     bi        = int(np.argmax(accs_no1))
 
@@ -302,14 +256,12 @@ def plot_knn(results, out_dir):
     ax.plot(ks, f1s,  marker="s", markersize=4, color=C_GREEN,
             lw=2, label="Macro F1", zorder=3, linestyle="--")
 
-    # mark k=1 as synthetic artefact
     ax.axvline(1, color=C_RED, linestyle=":", alpha=0.6, lw=1.4)
     ax.annotate("k=1: synthetic\ndata artefact",
                 xy=(1, accs[0]), xytext=(4, accs[0] - 0.06),
                 fontsize=8, color=C_RED,
                 arrowprops=dict(arrowstyle="->", color=C_RED, lw=1.1))
 
-    # mark best k≥3
     ax.axvline(ks[bi], color=C_BLUE, linestyle=":", alpha=0.5, lw=1.4)
     ax.annotate(f"Best k={ks[bi]}\nacc={accs[bi]:.3f}",
                 xy=(ks[bi], accs[bi]),
@@ -321,7 +273,7 @@ def plot_knn(results, out_dir):
     ax.set_ylabel("Score  (10-fold stratified CV)", fontsize=12)
     ax.set_title("K-Nearest Neighbours – Performance vs k\nObesity Dataset",
                  fontsize=13, fontweight="bold")
-    ax.set_xticks(ks[::2])   # label every other tick to avoid crowding
+    ax.set_xticks(ks[::2])
     ax.set_ylim(0.5, 1.02)
     ax.legend(fontsize=11)
     plt.tight_layout()
@@ -411,10 +363,6 @@ def plot_nn(results, out_dir):
     print(f"  → Plot: {path}")
 
 
-# ════════════════════════════════════════════════════════════════════════════
-# SUMMARY
-# ════════════════════════════════════════════════════════════════════════════
-
 def print_summary(knn_res, rf_res, nn_res):
     def best(res, skip_k1=False):
         scores = [r["acc"] for r in res]
@@ -436,10 +384,6 @@ def print_summary(knn_res, rf_res, nn_res):
     print("=" * 68)
     print("* k=1 wins due to 74.8% SMOTE-synthetic data; excluded from best selection.")
 
-
-# ════════════════════════════════════════════════════════════════════════════
-# MAIN
-# ════════════════════════════════════════════════════════════════════════════
 
 def main():
     X_raw, y, classes, num_idxs, cat_cols = load_data(DATASET)
