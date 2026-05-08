@@ -5,6 +5,8 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score, recall_score
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import pickle
 
 # Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -83,6 +85,21 @@ def evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=10):
     }
 
 
+def evaluate_task(X, y, layers, reg_lambda, k=10):
+    """Top-level wrapper for running one architecture+lambda evaluation (picklable)."""
+    metrics = evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=k)
+    return {
+        "architecture": architecture_label(layers),
+        "lambda": reg_lambda,
+        "mean_acc": metrics["mean_accuracy"],
+        "std_acc": metrics["std_accuracy"],
+        "mean_recall": metrics["mean_recall"],
+        "std_recall": metrics["std_recall"],
+        "mean_f1": metrics["mean_f1"],
+        "std_f1": metrics["std_f1"],
+    }
+
+
 def main():
     print("Loading credit approval dataset...")
     X, y = load_credit_data()
@@ -104,25 +121,55 @@ def main():
     results = []
 
     print("Starting NN evaluations across architectures and regularization values...\n")
-    for layers in architectures:
-        arch_name = architecture_label(layers)
-        for reg_lambda in reg_values:
-            print(f"=== Architecture {arch_name} | lambda={reg_lambda} ===")
-            metrics = evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=10)
-            results.append({
-                "architecture": arch_name,
-                "lambda": reg_lambda,
-                "mean_acc": metrics["mean_accuracy"],
-                "std_acc": metrics["std_accuracy"],
-                "mean_recall": metrics["mean_recall"],
-                "std_recall": metrics["std_recall"],
-                "mean_f1": metrics["mean_f1"],
-                "std_f1": metrics["std_f1"],
-            })
+
+    # Build task list
+    tasks = [(layers, reg) for layers in architectures for reg in reg_values]
+
+    # Recommended workers: leave 2 cores free
+    try:
+        recommended_workers = max(1, min(20, os.cpu_count() - 2))
+    except Exception:
+        recommended_workers = 4
+
+    # Quick pickling test to ensure ProcessPool can serialize the arguments
+    can_parallel = False
+    if tasks:
+        try:
+            pickle.dumps((X, y, tasks[0][0], tasks[0][1]))
+            can_parallel = True
+        except Exception as e:
+            print("Pickle test failed, will run sequentially:", e)
+
+    if can_parallel:
+        print(f"Running {len(tasks)} tasks with ProcessPoolExecutor (workers={recommended_workers})\n")
+        with ProcessPoolExecutor(max_workers=recommended_workers) as executor:
+            future_to_task = {
+                executor.submit(evaluate_task, X, y, layers, reg): (layers, reg)
+                for (layers, reg) in tasks
+            }
+            for future in as_completed(future_to_task):
+                layers, reg = future_to_task[future]
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    print(f"Task {architecture_label(layers)} lambda={reg} raised: {exc}")
+                else:
+                    results.append(result)
+                    print(
+                        f"  Done: {result['architecture']} lambda={reg} "
+                        f"Acc={result['mean_acc']:.4f} (std {result['std_acc']:.4f}), "
+                        f"Recall={result['mean_recall']:.4f}, F1={result['mean_f1']:.4f}"
+                    )
+    else:
+        print("Running sequentially (no parallel execution)\n")
+        for layers, reg_lambda in tasks:
+            print(f"=== Architecture {architecture_label(layers)} | lambda={reg_lambda} ===")
+            result = evaluate_task(X, y, layers, reg_lambda, k=10)
+            results.append(result)
             print(
-                f"  Done: Acc={metrics['mean_accuracy']:.4f} (std {metrics['std_accuracy']:.4f}), "
-                f"Recall={metrics['mean_recall']:.4f} (std {metrics['std_recall']:.4f}), "
-                f"F1={metrics['mean_f1']:.4f} (std {metrics['std_f1']:.4f})\n"
+                f"  Done: Acc={result['mean_acc']:.4f} (std {result['std_acc']:.4f}), "
+                f"Recall={result['mean_recall']:.4f} (std {result['std_recall']:.4f}), "
+                f"F1={result['mean_f1']:.4f} (std {result['std_f1']:.4f})\n"
             )
 
     # Print results table
