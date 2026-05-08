@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score
 
 # Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -46,6 +46,7 @@ def evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=10):
     skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
     accuracy_scores = []
     f1_scores = []
+    recall_scores = []
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), start=1):
         print(f"  Fold {fold}/{k}...")
@@ -66,15 +67,19 @@ def evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=10):
 
         accuracy = accuracy_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred, average='macro')
+        recall = recall_score(y_test, y_pred, average='macro')
 
         accuracy_scores.append(accuracy)
         f1_scores.append(f1)
+        recall_scores.append(recall)
 
     return {
         "mean_accuracy": float(np.mean(accuracy_scores)),
         "std_accuracy": float(np.std(accuracy_scores)),
         "mean_f1": float(np.mean(f1_scores)),
         "std_f1": float(np.std(f1_scores)),
+        "mean_recall": float(np.mean(recall_scores)),
+        "std_recall": float(np.std(recall_scores)),
     }
 
 
@@ -109,21 +114,24 @@ def main():
                 "lambda": reg_lambda,
                 "mean_acc": metrics["mean_accuracy"],
                 "std_acc": metrics["std_accuracy"],
+                "mean_recall": metrics["mean_recall"],
+                "std_recall": metrics["std_recall"],
                 "mean_f1": metrics["mean_f1"],
                 "std_f1": metrics["std_f1"],
             })
             print(
                 f"  Done: Acc={metrics['mean_accuracy']:.4f} (std {metrics['std_accuracy']:.4f}), "
+                f"Recall={metrics['mean_recall']:.4f} (std {metrics['std_recall']:.4f}), "
                 f"F1={metrics['mean_f1']:.4f} (std {metrics['std_f1']:.4f})\n"
             )
 
     # Print results table
-    print("\n" + "=" * 130)
-    print(f"{'Architecture':<20} | {'Lambda':<8} | {'Mean Acc':<10} | {'Std Acc':<10} | {'Mean F1':<10} | {'Std F1':<10}")
-    print("-" * 130)
+    print("\n" + "=" * 160)
+    print(f"{'Architecture':<20} | {'Lambda':<8} | {'Mean Acc':<10} | {'Std Acc':<10} | {'Mean Recall':<12} | {'Std Recall':<12} | {'Mean F1':<10} | {'Std F1':<10}")
+    print("-" * 160)
     for r in results:
-        print(f"{r['architecture']:<20} | {r['lambda']:<8} | {r['mean_acc']:<10.4f} | {r['std_acc']:<10.4f} | {r['mean_f1']:<10.4f} | {r['std_f1']:<10.4f}")
-    print("=" * 130 + "\n")
+        print(f"{r['architecture']:<20} | {r['lambda']:<8} | {r['mean_acc']:<10.4f} | {r['std_acc']:<10.4f} | {r['mean_recall']:<12.4f} | {r['std_recall']:<12.4f} | {r['mean_f1']:<10.4f} | {r['std_f1']:<10.4f}")
+    print("=" * 160 + "\n")
 
 
 if __name__ == "__main__":

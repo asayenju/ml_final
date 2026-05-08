@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score
 
 
 def run_stratified_cross_validation(model, X, y, k=10):
@@ -24,10 +24,13 @@ def run_stratified_cross_validation(model, X, y, k=10):
     dict : A dictionary containing:
         - 'accuracy_scores': list of accuracy scores for each fold
         - 'f1_scores': list of F1 scores (macro average) for each fold
+        - 'recall_scores': list of recall scores (macro average) for each fold
         - 'mean_accuracy': mean accuracy across all folds
         - 'mean_f1': mean F1 score across all folds
+        - 'mean_recall': mean recall across all folds
         - 'std_accuracy': standard deviation of accuracy
         - 'std_f1': standard deviation of F1 score
+        - 'std_recall': standard deviation of recall
     """
     skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
     
@@ -39,6 +42,7 @@ def run_stratified_cross_validation(model, X, y, k=10):
         
     accuracy_scores = []
     f1_scores = []
+    recall_scores = []
     
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), start=1):
         print(f"Running fold {fold}/{k}...")
@@ -56,16 +60,21 @@ def run_stratified_cross_validation(model, X, y, k=10):
         # Calculate metrics
         accuracy = accuracy_score(y_test, y_pred)
         f1 = f1_score(y_test, y_pred, average='macro')
+        recall = recall_score(y_test, y_pred, average='macro')
         
         accuracy_scores.append(accuracy)
         f1_scores.append(f1)
-        print(f"  Fold {fold} - Accuracy: {accuracy:.4f}, F1 (macro): {f1:.4f}")
+        recall_scores.append(recall)
+        print(f"  Fold {fold} - Accuracy: {accuracy:.4f}, F1 (macro): {f1:.4f}, Recall (macro): {recall:.4f}")
     
     return {
         'accuracy_scores': accuracy_scores,
         'f1_scores': f1_scores,
+        'recall_scores': recall_scores,
         'mean_accuracy': np.mean(accuracy_scores),
         'mean_f1': np.mean(f1_scores),
+        'mean_recall': np.mean(recall_scores),
         'std_accuracy': np.std(accuracy_scores),
-        'std_f1': np.std(f1_scores)
+        'std_f1': np.std(f1_scores),
+        'std_recall': np.std(recall_scores)
     }

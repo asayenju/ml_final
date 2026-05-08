@@ -53,6 +53,7 @@ def main():
     
     print(f"\n--- Cross-Validation Results (10-fold) ---")
     print(f"Mean Accuracy: {results['mean_accuracy'] * 100:.2f}% (std: ±{results['std_accuracy'] * 100:.2f}%)")
+    print(f"Mean Recall: {results['mean_recall']:.4f} (std: ±{results['std_recall']:.4f})")
     print(f"Mean F1-Score: {results['mean_f1']:.4f} (std: ±{results['std_f1']:.4f})")
 
 

@@ -54,16 +54,18 @@ def main():
             "std_acc": res["std_accuracy"],
             "mean_f1": res["mean_f1"],
             "std_f1": res["std_f1"],
+            "mean_recall": res["mean_recall"],
+            "std_recall": res["std_recall"],
         })
         print(f"Completed k = {k}. Mean Acc: {res['mean_accuracy']:.4f}\n")
 
     # Print the final formatted table
-    print("\n" + "=" * 80)
-    print(f"{'k':<6} | {'Mean Accuracy':<15} | {'Std Accuracy':<15} | {'Mean F1-Score':<15} | {'Std F1-Score':<15}")
-    print("-" * 80)
+    print("\n" + "=" * 110)
+    print(f"{'k':<6} | {'Mean Accuracy':<15} | {'Std Accuracy':<15} | {'Mean Recall':<15} | {'Std Recall':<15} | {'Mean F1-Score':<15} | {'Std F1-Score':<15}")
+    print("-" * 110)
     for r in summary_results:
-        print(f"{r['k']:<6} | {r['mean_acc']:<15.4f} | {r['std_acc']:<15.4f} | {r['mean_f1']:<15.4f} | {r['std_f1']:<15.4f}")
-    print("=" * 80 + "\n")
+        print(f"{r['k']:<6} | {r['mean_acc']:<15.4f} | {r['std_acc']:<15.4f} | {r['mean_recall']:<15.4f} | {r['std_recall']:<15.4f} | {r['mean_f1']:<15.4f} | {r['std_f1']:<15.4f}")
+    print("=" * 110 + "\n")
 
     # Plot accuracy vs k
     k_axis = [r["k"] for r in summary_results]

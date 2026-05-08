@@ -62,31 +62,35 @@ def main():
             'n_trees': n,
             'mean_acc': res['mean_accuracy'],
             'std_acc': res['std_accuracy'],
+            'mean_recall': res['mean_recall'],
+            'std_recall': res['std_recall'],
             'mean_f1': res['mean_f1'],
             'std_f1': res['std_f1']
         })
         print(f"Completed n_trees = {n}. Mean Acc: {res['mean_accuracy']:.4f}\n")
         
     # Print the final formatted table
-    print("\n" + "="*85)
-    print(f"{'n_trees':<10} | {'Mean Accuracy':<15} | {'Std Accuracy':<15} | {'Mean F1-Score':<15} | {'Std F1-Score':<15}")
-    print("-" * 85)
+    print("\n" + "="*115)
+    print(f"{'n_trees':<10} | {'Mean Accuracy':<15} | {'Std Accuracy':<15} | {'Mean Recall':<15} | {'Std Recall':<15} | {'Mean F1-Score':<15} | {'Std F1-Score':<15}")
+    print("-" * 115)
     for r in summary_results:
-        print(f"{r['n_trees']:<10} | {r['mean_acc']:<15.4f} | {r['std_acc']:<15.4f} | {r['mean_f1']:<15.4f} | {r['std_f1']:<15.4f}")
-    print("="*85 + "\n")
+        print(f"{r['n_trees']:<10} | {r['mean_acc']:<15.4f} | {r['std_acc']:<15.4f} | {r['mean_recall']:<15.4f} | {r['std_recall']:<15.4f} | {r['mean_f1']:<15.4f} | {r['std_f1']:<15.4f}")
+    print("="*115 + "\n")
 
     # Generate and save matplotlib table
-    fig, ax = plt.subplots(figsize=(10, 4))
+    fig, ax = plt.subplots(figsize=(14, 4))
     ax.axis('tight')
     ax.axis('off')
     
-    col_labels = ["n_trees", "Mean Accuracy", "Std Accuracy", "Mean F1-Score", "Std F1-Score"]
+    col_labels = ["n_trees", "Mean Accuracy", "Std Accuracy", "Mean Recall", "Std Recall", "Mean F1-Score", "Std F1-Score"]
     table_data = []
     for r in summary_results:
         table_data.append([
             str(r['n_trees']), 
             f"{r['mean_acc']:.4f}", 
-            f"{r['std_acc']:.4f}", 
+            f"{r['std_acc']:.4f}",
+            f"{r['mean_recall']:.4f}",
+            f"{r['std_recall']:.4f}",
             f"{r['mean_f1']:.4f}", 
             f"{r['std_f1']:.4f}"
         ])
