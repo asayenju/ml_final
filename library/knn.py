@@ -32,7 +32,7 @@ class KNNClassifier:
             raise ValueError("Model is not fitted. Call fit(X, y) first.")
 
     def _predict_one(self, x_new):
-        # Euclidean Distance
+
         diff = self.X_train - x_new
         distances = np.sqrt(np.sum(diff ** 2, axis=1))
 

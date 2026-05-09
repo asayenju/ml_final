@@ -42,8 +42,8 @@ def main():
     X = X[indices]
     y = y[indices]
 
-    # Learning curve sizes
-    sizes = range(1, X.shape[0] + 1, 50)  # from 100 to full dataset in steps of 200
+
+    sizes = range(1, X.shape[0] + 1, 50)
 
     costs = []
 
@@ -66,7 +66,7 @@ def main():
         costs.append(cost)
         print(f"  Cost J = {cost:.4f}")
 
-    # Plot learning curve
+
     fig, ax = plt.subplots(figsize=(8, 4.5))
     ax.plot(sizes, costs, marker='o', linewidth=2)
     ax.set_xlabel("Number of training instances")
@@ -77,7 +77,7 @@ def main():
     out_path = os.path.join(os.path.dirname(__file__), 'nn_learning_curve_64_16_10_lambda_0_01.png')
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     print(f"Saved learning curve to {out_path}")
-    
+
 
 if __name__ == "__main__":
     main()

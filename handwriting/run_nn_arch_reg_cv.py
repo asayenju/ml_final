@@ -61,7 +61,7 @@ def main():
     digits = datasets.load_digits(return_X_y=True)
     X, y = digits[0], digits[1]
 
-    # Architectures: input=64, output=10
+
     architectures = [
         [64, 2, 10],
         [64, 4, 10],
@@ -94,7 +94,7 @@ def main():
                 f"F1={metrics['mean_f1']:.4f} (std {metrics['std_f1']:.4f})\n"
             )
 
-    # Print results table
+
     print("\n" + "=" * 110)
     print(
         f"{'Architecture':<20} | {'Lambda':<6} | {'Mean Acc':<10} | {'Std Acc':<10} | "

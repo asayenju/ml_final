@@ -22,7 +22,7 @@ K_FOLDS = 10
 RANDOM_STATE = 42
 DATASET = REPO_ROOT / "parkinsons.csv"
 
-# (hidden_sizes, lambda, label_for_table)
+
 CONFIGS = [
     ([8],      0.00,  "22-8-2,  λ=0"),
     ([16],     0.00,  "22-16-2, λ=0"),

@@ -152,7 +152,7 @@ class HeterogeneousBootstrapEnsembleEC3:
         self.classes_ = np.unique(y)
         self.members_ = []
 
-        # Shared encoder for the three NN members.
+
         self.encoder_ = _SimpleOneHotEncoder()
         X_encoded = self.encoder_.fit_transform(X)
 

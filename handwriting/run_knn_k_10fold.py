@@ -15,7 +15,7 @@ def main():
     digits = datasets.load_digits(return_X_y=True)
     X, y = digits[0], digits[1]
 
-    k_values = range(1, 51, 2)  
+    k_values = range(1, 51, 2)
     summary_results = []
 
     print("Starting KNN evaluations across different k values...\n")
@@ -34,7 +34,7 @@ def main():
         })
         print(f"Completed k = {k}. Mean Acc: {res['mean_accuracy']:.4f}\n")
 
-    # Print the final formatted table
+
     print("\n" + "=" * 80)
     print(f"{'k':<6} | {'Mean Accuracy':<15} | {'Std Accuracy':<15} | {'Mean F1-Score':<15} | {'Std F1-Score':<15}")
     print("-" * 80)
@@ -42,7 +42,7 @@ def main():
         print(f"{r['k']:<6} | {r['mean_acc']:<15.4f} | {r['std_acc']:<15.4f} | {r['mean_f1']:<15.4f} | {r['std_f1']:<15.4f}")
     print("=" * 80 + "\n")
 
-    # Plot accuracy vs k
+
     k_axis = [r["k"] for r in summary_results]
     acc_axis = [r["mean_acc"] for r in summary_results]
 

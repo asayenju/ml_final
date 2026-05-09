@@ -17,17 +17,17 @@ def load_credit_data():
     data = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'credit_approval.csv'))
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
-    
-    # Numeric columns: indices 1, 2, 7, 13, 14
-    # Categorical columns: indices 0, 3, 4, 5, 6, 8, 9, 10, 11, 12
+
+
+
     categorical_cols = {0, 3, 4, 5, 6, 8, 9, 10, 11, 12}
-    
-    # Encode categorical columns
+
+
     X_processed = X.copy().astype(object)
     for col_idx in categorical_cols:
         le = LabelEncoder()
         X_processed[:, col_idx] = le.fit_transform(X[:, col_idx].astype(str))
-    
+
     X_processed = X_processed.astype(float)
     return X_processed, y
 
@@ -84,7 +84,6 @@ def evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=10):
 
 
 def evaluate_task(X, y, layers, reg_lambda, k=10):
-    """Top-level wrapper for running one architecture+lambda evaluation (picklable)."""
     metrics = evaluate_nn_arch_reg(X, y, layers, reg_lambda, k=k)
     return {
         "architecture": architecture_label(layers),
@@ -101,10 +100,10 @@ def evaluate_task(X, y, layers, reg_lambda, k=10):
 def main():
     print("Loading credit approval dataset...")
     X, y = load_credit_data()
-    
+
     print(f"Dataset shape: X={X.shape}, y={y.shape}")
 
-    # Architectures: input=15, output=2 (binary classification)
+
     architectures = [
         [15, 2, 2],
         [15, 4, 2],
@@ -120,16 +119,16 @@ def main():
 
     print("Starting NN evaluations across architectures and regularization values...\n")
 
-    # Build task list
+
     tasks = [(layers, reg) for layers in architectures for reg in reg_values]
 
-    # Recommended workers: leave 2 cores free
+
     try:
         recommended_workers = max(1, min(20, os.cpu_count() - 2))
     except Exception:
         recommended_workers = 4
 
-    # Quick pickling test to ensure ProcessPool can serialize the arguments
+
     can_parallel = False
     if tasks:
         try:
@@ -170,7 +169,7 @@ def main():
                 f"F1={result['mean_f1']:.4f} (std {result['std_f1']:.4f})\n"
             )
 
-    # Print results table in the original (architecture, lambda) order
+
     result_map = {(r['architecture'], r['lambda']): r for r in results}
     ordered_results = []
     for layers, reg in tasks:
@@ -187,7 +186,7 @@ def main():
         print(f"{r['architecture']:<20} | {r['lambda']:<8} | {r['mean_acc']:<10.4f} | {r['std_acc']:<10.4f} | {r['mean_recall']:<12.4f} | {r['std_recall']:<12.4f} | {r['mean_f1']:<10.4f} | {r['std_f1']:<10.4f}")
     print("=" * 160 + "\n")
 
-    # Report best-performing configurations for each metric
+
     if results:
         best_acc = max(results, key=lambda r: r['mean_acc'])
         best_recall = max(results, key=lambda r: r['mean_recall'])

@@ -24,7 +24,7 @@ from library.nn import (
 )
 
 DATASET = REPO_ROOT / "parkinsons.csv"
-BEST_HIDDEN = [32]   # best architecture: 22-32-2 (highest accuracy in nn_10fold sweep)
+BEST_HIDDEN = [32]
 BEST_LAMBDA = 0.00
 LEARNING_RATE = 0.1
 MAX_ITER = 5000
@@ -53,7 +53,6 @@ def one_hot(y, n_classes=2):
 
 
 def compute_J_after_fit(nn_model, X_train, y_onehot):
-    """Compute training cost after fitting (uses stored normalization stats)."""
     X_norm = apply_min_max_normalization(X_train.astype(float), nn_model.normalization_stats)
     activations, _ = run_forward_pass(X_norm, nn_model.weight_matrices)
     return compute_cross_entropy_cost(

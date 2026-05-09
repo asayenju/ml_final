@@ -66,7 +66,7 @@ class MultinomialNaiveBayesScratch:
 
         jll = self._joint_log_likelihood(X)
 
-        # log-sum-exp normalization for numerical stability
+
         max_log = np.max(jll, axis=1, keepdims=True)
         log_prob_x = max_log + np.log(np.sum(np.exp(jll - max_log), axis=1, keepdims=True))
         return jll - log_prob_x

@@ -40,7 +40,6 @@ def load_parkinsons(csv_path):
 
 
 def preprocess_numeric(X_train, X_test):
-    """Convert to float, imputing missing with training mean."""
     X_tr = np.array(X_train, dtype=object).copy()
     X_te = np.array(X_test, dtype=object).copy()
     for j in range(X_train.shape[1]):
