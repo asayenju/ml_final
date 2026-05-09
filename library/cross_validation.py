@@ -5,33 +5,6 @@ from sklearn.metrics import accuracy_score, f1_score, recall_score
 
 
 def run_stratified_cross_validation(model, X, y, k=10):
-    """
-    Perform stratified k-fold cross-validation on a custom model.
-    
-    Parameters:
-    -----------
-    model : object
-        A custom model with fit() and predict() methods
-    X : array-like
-        Feature matrix. Should be a numpy array for advanced indexing.
-    y : array-like
-        Target labels. Should be a numpy array.
-    k : int, default=10
-        Number of folds for stratified cross-validation
-    
-    Returns:
-    --------
-    dict : A dictionary containing:
-        - 'accuracy_scores': list of accuracy scores for each fold
-        - 'f1_scores': list of F1 scores (macro average) for each fold
-        - 'recall_scores': list of recall scores (macro average) for each fold
-        - 'mean_accuracy': mean accuracy across all folds
-        - 'mean_f1': mean F1 score across all folds
-        - 'mean_recall': mean recall across all folds
-        - 'std_accuracy': standard deviation of accuracy
-        - 'std_f1': standard deviation of F1 score
-        - 'std_recall': standard deviation of recall
-    """
     skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
     
     # Ensure X and y are numpy arrays for proper indexing

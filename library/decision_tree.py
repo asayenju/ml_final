@@ -1,19 +1,7 @@
 import numpy as np
 
-# Step-by-step usage:
-# 1) Import: from library import DecisionTreeClassifierScratch
-# 2) Prepare data:
-#    - X_train shape = (n_samples, n_features), categorical/string features
-#    - y_train shape = (n_samples,)
-# 3) Create model: model = DecisionTreeClassifierScratch()
-# 4) Train: model.fit(X_train, y_train)
-# 5) Predict labels: y_pred = model.predict(X_test)
-# 6) Evaluate accuracy: acc = model.score(X_test, y_test)
-# 7) For unseen category values at inference, the model uses node-level fallback labels.
-
 
 class DecisionTreeClassifierScratch:
-    """A simple ID3-style Decision Tree classifier for categorical features."""
 
     def __init__(self):
         self.tree_ = None

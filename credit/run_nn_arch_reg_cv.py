@@ -8,14 +8,12 @@ from sklearn.metrics import accuracy_score, f1_score, recall_score
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import pickle
 
-# Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from library.nn import NeuralNetwork
 
 
 def load_credit_data():
-    """Load and preprocess credit_approval dataset"""
     data = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'credit_approval.csv'))
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values

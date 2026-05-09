@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-# Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from library.random_forest import RandomForestClassifierScratch
@@ -12,7 +11,6 @@ from library.cross_validation import run_stratified_cross_validation
 
 
 def load_credit_data():
-    """Load and preprocess credit_approval dataset"""
     data = pd.read_csv(os.path.join(os.path.dirname(__file__), '..', 'credit_approval.csv'))
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values

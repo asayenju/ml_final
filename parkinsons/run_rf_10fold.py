@@ -1,11 +1,3 @@
-"""
-Random Forest 10-fold stratified cross-validation on the Oxford Parkinson's Disease dataset.
-
-Sweeps n_trees ∈ {1, 5, 10, 20, 30, 40, 50} with max_depth=10 (7 settings).
-All 22 features are numeric; uses numeric_cols to enable threshold-based splits.
-Reports accuracy + macro F1 to highlight class-imbalance impact.
-Saves results CSV and a combined accuracy/F1 vs n_trees plot.
-"""
 import csv
 import os
 from pathlib import Path

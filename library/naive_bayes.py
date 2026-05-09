@@ -1,27 +1,7 @@
 import numpy as np
 
-# Step-by-step usage:
-# 1) Import: from library import MultinomialNaiveBayesScratch
-# 2) Prepare data:
-#    - X_train shape = (n_samples, n_features)
-#    - X values must be non-negative (counts/frequencies/one-hot)
-#    - y_train shape = (n_samples,)
-# 3) Create model: model = MultinomialNaiveBayesScratch(alpha=1.0)
-# 4) Train: model.fit(X_train, y_train)
-# 5) Predict labels: y_pred = model.predict(X_test)
-# 6) Predict probabilities: y_proba = model.predict_proba(X_test)
-# 7) Evaluate accuracy: acc = model.score(X_test, y_test)
-#
-# About alpha (Laplace smoothing):
-# P(feature_j | class_c) = (count(feature_j, class_c) + alpha) /
-#                          (sum_all_feature_counts_in_class_c + alpha * n_features)
-# - alpha = 0: no smoothing (can lead to zero probabilities)
-# - alpha = 1: classic Laplace smoothing
-# - larger alpha: stronger smoothing / more uniform probabilities
-
 
 class MultinomialNaiveBayesScratch:
-    """Multinomial Naive Bayes classifier implemented from scratch."""
 
     def __init__(self, alpha=1.0):
         if alpha < 0:
