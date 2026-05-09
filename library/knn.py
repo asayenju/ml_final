@@ -1,19 +1,7 @@
 import numpy as np
 
-# Step-by-step usage:
-# 1) Import: from library import KNNClassifier
-# 2) Prepare data:
-#    - X_train shape = (n_samples, n_features), numeric values
-#    - y_train shape = (n_samples,)
-# 3) Create model: model = KNNClassifier(k=5)
-# 4) Train: model.fit(X_train, y_train)
-# 5) Predict labels: y_pred = model.predict(X_test)
-# 6) Evaluate accuracy: acc = model.score(X_test, y_test)
-# 7) Reuse on other datasets with the same numeric feature format.
-
 
 class KNNClassifier:
-    """A simple, reusable k-Nearest Neighbors classifier implemented from scratch."""
 
     def __init__(self, k=3):
         if k < 1:

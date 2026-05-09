@@ -1,10 +1,3 @@
-"""
-KNN 10-fold stratified cross-validation on the Oxford Parkinson's Disease dataset.
-
-Sweeps k from 1 to 49 (odd values, 13 settings) and reports accuracy + macro F1.
-Per-fold z-score normalization is applied to avoid data leakage.
-Saves results CSV and a combined accuracy/F1 vs k plot.
-"""
 import csv
 import os
 from pathlib import Path
@@ -53,7 +46,6 @@ def normalize_zscore(X_train, X_test):
 
 
 def compute_metrics(y_true, y_pred):
-    """Accuracy and macro-averaged F1."""
     y_true = np.asarray(y_true)
     y_pred = np.asarray(y_pred)
     acc = np.mean(y_true == y_pred)

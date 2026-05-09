@@ -1,12 +1,3 @@
-"""
-Neural Network learning curve for the Oxford Parkinson's Disease dataset.
-
-Uses the best architecture found in run_nn_10fold.py.
-Trains the NN on increasing training-set sizes and records the final training
-cost J at each size (averaged over 5 random seeds for stability).
-
-Saves the learning curve plot to the writeup directory.
-"""
 import csv
 import os
 from pathlib import Path

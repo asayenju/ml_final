@@ -2,10 +2,6 @@ import numpy as np
 
 
 class RandomForestClassifierErrorSplitScratch:
-    """
-    Random Forest variant using classification-error reduction
-    as split criterion (instead of entropy/information gain or gini).
-    """
 
     def __init__(
         self,

@@ -1,22 +1,7 @@
 import numpy as np
 
-# Step-by-step usage:
-# 1) Import: from library import RandomForestClassifierScratch
-# 2) Prepare data:
-#    - X_train shape = (n_samples, n_features), supports mixed values (strings + numbers)
-#    - y_train shape = (n_samples,)
-# 3) Define which columns are numeric (0-based indices), for example: num_cols={0,2,4}
-# 4) Create model:
-#    model = RandomForestClassifierScratch(
-#        n_trees=20, max_depth=10, min_size=3, min_gain=1e-4, numeric_cols=num_cols
-#    )
-# 5) Train: model.fit(X_train, y_train)
-# 6) Predict labels: y_pred = model.predict(X_test)
-# 7) Evaluate accuracy: acc = model.score(X_test, y_test)
-
 
 class RandomForestClassifierScratch:
-    """Random Forest classifier from scratch with numeric + categorical split support."""
 
     def __init__(
         self,

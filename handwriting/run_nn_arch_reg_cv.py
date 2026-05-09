@@ -5,7 +5,6 @@ from sklearn import datasets
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, f1_score
 
-# Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from library.nn import NeuralNetwork

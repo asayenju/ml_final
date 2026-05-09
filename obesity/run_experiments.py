@@ -374,19 +374,19 @@ def main():
     out_dir     = ROOT / "results" / "obesity"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"▶ K-NN ({K_FOLDS}-fold, k = 1 to 51 odd) …")
+    print(f"K-NN ({K_FOLDS}-fold, k = 1 to 51 odd) …")
     knn_res = run_knn(X_raw, y, folds, cat_cols, global_cats)
     plot_knn(knn_res, out_dir)
     save_csv(knn_res, out_dir / "knn_10fold.csv",
              ["k", "acc", "acc_std", "f1", "f1_std"])
 
-    print(f"\n▶ Random Forest ({K_FOLDS}-fold, {len(RF_CONFIGS)} configs) …")
+    print(f"\n Random Forest ({K_FOLDS}-fold, {len(RF_CONFIGS)} configs) …")
     rf_res = run_rf(X_raw, y, folds, num_idxs)
     plot_rf(rf_res, out_dir)
     save_csv(rf_res, out_dir / "rf_10fold.csv",
              ["label", "n_trees", "max_depth", "acc", "acc_std", "f1", "f1_std"])
 
-    print(f"\n▶ Neural Network ({K_FOLDS}-fold, 7 architectures) …")
+    print(f"\nNeural Network ({K_FOLDS}-fold, 7 architectures) …")
     nn_res = run_nn(X_raw, y, folds, cat_cols, n_classes, global_cats)
     plot_nn(nn_res, out_dir)
     save_csv(nn_res, out_dir / "nn_10fold.csv",

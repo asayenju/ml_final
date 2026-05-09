@@ -1,12 +1,3 @@
-"""
-Neural Network 10-fold stratified cross-validation on the Oxford Parkinson's Disease dataset.
-
-Sweeps 7 architecture + regularisation configurations (all 22 numerical features → hidden → 2 outputs).
-The NeuralNetwork class normalises internally (min-max per fold), so no external normalisation
-is applied here.  A thin wrapper handles one-hot encoding of labels and argmax decoding.
-
-Saves results CSV and a bar chart of accuracy / macro F1 per configuration.
-"""
 import csv
 import os
 from pathlib import Path
@@ -78,7 +69,6 @@ def compute_metrics(y_true, y_pred):
 
 
 class NeuralNetworkWrapper:
-    """Wraps NeuralNetwork with one-hot encoding so it works in a standard CV loop."""
 
     def __init__(self, hidden_sizes, reg_lambda, learning_rate, max_iterations):
         self.hidden_sizes = hidden_sizes

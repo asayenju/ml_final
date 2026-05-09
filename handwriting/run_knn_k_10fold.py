@@ -4,7 +4,6 @@ import numpy as np
 from sklearn import datasets
 import matplotlib.pyplot as plt
 
-# Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from library.knn import KNNClassifier

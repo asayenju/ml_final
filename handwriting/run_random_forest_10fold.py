@@ -3,7 +3,6 @@ import os
 import numpy as np
 from sklearn import datasets
 
-# Ensure the library module is accessible
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from library.random_forest import RandomForestClassifierScratch
