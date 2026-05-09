@@ -75,10 +75,10 @@ def main():
     costs = []
 
     model = NeuralNetwork(
-        layers=[15, 8, 2],  # 15 input features, binary classification
+        layers=[15, 16, 8, 2],  # 15 input features, binary classification
         regularization=0.01,
         learning_rate=0.01,
-        max_iterations=3000,
+        max_iterations=10000,
     )
 
     for size in sizes:
@@ -98,10 +98,10 @@ def main():
     ax.plot(sizes, costs, marker='o', linewidth=2)
     ax.set_xlabel("Number of training instances")
     ax.set_ylabel("Cost J")
-    ax.set_title("Neural network learning curve (15-8-2, reg=0.01)")
+    ax.set_title("Neural network learning curve (15-16-8-2, reg=0.01)")
     ax.grid(True, linestyle='--', alpha=0.4)
 
-    out_path = os.path.join(os.path.dirname(__file__), 'nn_learning_curve_15_8_2_lambda_0_01.png')
+    out_path = os.path.join(os.path.dirname(__file__), 'nn_learning_curve_15_16_8_2_lambda_0_01.png')
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     print(f"\nSaved learning curve to {out_path}")
     plt.close()
